@@ -9,7 +9,7 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        redirectTo: `${window.location.origin}/marketer/trip`
+        redirectTo: 'https://somic-sales-tracker.vercel.app/marketer/trip'
       }
     })
     if (error) {
