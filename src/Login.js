@@ -6,7 +6,12 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    const { error } = await supabase.auth.signInWithOtp({ email })
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        redirectTo: `${window.location.origin}/marketer/trip`
+      }
+    })
     if (error) {
       alert('Login failed: ' + error.message)
     } else {
