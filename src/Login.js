@@ -1,21 +1,40 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
+import { CEO_EMAIL } from './constants'
 
 export default function Login() {
   const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  // ✅ Check if already logged in, and redirect
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        if (user.email === CEO_EMAIL) {
+          window.location.href = '/ceo/dashboard'
+        } else {
+          window.location.href = '/marketer/trip'
+        }
+      }
+    }
+
+    checkUser()
+  }, [])
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        redirectTo: 'https://somic-sales-tracker.vercel.app/marketer/trip'
-      }
-    })
+    setLoading(true)
+
+    const { error } = await supabase.auth.signInWithOtp({ email })
+
+    setLoading(false)
+
     if (error) {
       alert('Login failed: ' + error.message)
     } else {
-      alert('Check your email for the login link!')
+      alert('Magic link sent! Check your email.')
     }
   }
 
@@ -30,7 +49,9 @@ export default function Login() {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <button type="submit">Send Magic Link</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Sending...' : 'Send Magic Link'}
+        </button>
       </form>
     </div>
   )

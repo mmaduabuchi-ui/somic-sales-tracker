@@ -1,65 +1,57 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
-import SummaryView from './SummaryView'
-import PaymentForm from './PaymentForm'
-import DebtSummary from './DebtSummary'
+import { Link } from 'react-router-dom'
+import { CEO_EMAIL } from './constants'
 
 export default function Dashboard() {
-  const [trips, setTrips] = useState([])
+  const [userEmail, setUserEmail] = useState('')
 
   useEffect(() => {
-    fetchTrips()
+    const fetchUser = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
+
+      if (error || !user || user.email !== CEO_EMAIL) {
+        alert('Access denied')
+        window.location.href = '/'
+      } else {
+        setUserEmail(user.email)
+      }
+    }
+
+    fetchUser()
   }, [])
 
-  const fetchTrips = async () => {
-    const { data, error } = await supabase
-      .from('trips')
-      .select('id, bags_sold, amount, trip_date, marketers(name)')
-      .order('trip_date', { ascending: false })
-
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut()
     if (error) {
-      alert('Error fetching trips: ' + error.message)
+      alert('Logout failed: ' + error.message)
     } else {
-      setTrips(data)
+      alert('Logged out')
+      window.location.href = '/'
     }
   }
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>🧾 CEO Dashboard – All Sales</h2>
+      <h2>CEO Dashboard</h2>
+      <p><strong>Welcome:</strong> {userEmail}</p>
 
-      {/* Trip Table */}
-      <table border="1" cellPadding="8" style={{ marginBottom: 30 }}>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Marketer</th>
-            <th>Bags Sold</th>
-            <th>Amount (₦)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {trips.map((trip) => (
-            <tr key={trip.id}>
-              <td>{trip.trip_date}</td>
-              <td>{trip.marketers?.name || 'Unknown'}</td>
-              <td>{trip.bags_sold}</td>
-              <td>₦{trip.amount}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <button onClick={handleLogout} style={{ marginBottom: 20 }}>
+        Logout
+      </button>
 
-      {/* Sales Summaries */}
-      <SummaryView type="daily" />
-      <SummaryView type="weekly" />
-      <SummaryView type="monthly" />
-
-      {/* Payment Form */}
-      <PaymentForm />
-
-      {/* Debt Summary */}
-      <DebtSummary />
+      <div style={{ marginTop: 30 }}>
+        <h3>CEO Tools</h3>
+        <ul>
+          <li>
+            <Link to="/ceo/edit-trips">Edit Trips & Payments</Link>
+          </li>
+          {/* You can add more CEO tools here later */}
+        </ul>
+      </div>
     </div>
   )
 }

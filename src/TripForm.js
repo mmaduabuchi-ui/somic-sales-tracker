@@ -1,22 +1,33 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
+import { CEO_EMAIL, PRICE_PER_BAG } from './constants'
 
 export default function TripForm() {
-  const [quantity, setQuantity] = useState(80) // default per trip
+  const [quantity, setQuantity] = useState(80)
   const [marketerEmail, setMarketerEmail] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const fetchUser = async () => {
       const {
-        data: { user }
+        data: { user },
+        error,
       } = await supabase.auth.getUser()
-      if (user) {
-        setMarketerEmail(user.email)
-      } else {
+
+      if (error || !user) {
         alert('Not logged in')
         window.location.href = '/'
+        return
       }
+
+      // 🚫 Block CEO from accessing this page
+      if (user.email === CEO_EMAIL) {
+        alert('CEO is not allowed to log trips')
+        window.location.href = '/ceo/dashboard'
+        return
+      }
+
+      setMarketerEmail(user.email)
     }
 
     fetchUser()
@@ -30,8 +41,9 @@ export default function TripForm() {
       {
         marketer_email: marketerEmail,
         quantity: quantity,
-        amount: quantity * 220
-      }
+        amount: quantity * PRICE_PER_BAG, // ✅ Auto-calculate amount
+        paid: 0                            // ✅ Marketers can't log payment
+      },
     ])
 
     setLoading(false)
@@ -40,7 +52,6 @@ export default function TripForm() {
       alert('Failed to save trip: ' + error.message)
     } else {
       alert('Trip saved successfully')
-      // ✅ Redirect to trip summary
       window.location.href = '/marketer/summary'
     }
   }
@@ -49,7 +60,7 @@ export default function TripForm() {
     <div style={{ padding: 20 }}>
       <h2>Log a New Trip</h2>
       <form onSubmit={handleSubmit}>
-        <label>Quantity (bags): </label>
+        <label>Quantity (bags):</label>
         <input
           type="number"
           value={quantity}
