@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
-import { CEO_EMAIL, PRICE_PER_BAG } from './constants'
+import { CEO_EMAIL } from './constants'
 
 export default function TripForm() {
   const [quantity, setQuantity] = useState(80)
@@ -41,8 +41,8 @@ export default function TripForm() {
       {
         marketer_email: marketerEmail,
         quantity: quantity,
-        amount: quantity * PRICE_PER_BAG, // ✅ Auto-calculate amount
-        paid: 0                            // ✅ Marketers can't log payment
+        // ❌ Removed "amount" because Supabase computes it automatically
+        paid: 0 // ✅ Marketers can't log payment
       },
     ])
 
