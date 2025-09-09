@@ -39,7 +39,7 @@ export default function MarketerSummary() {
     fetchSummary()
   }, [])
 
-  const pricePerBag = 220
+  const pricePerBag = 210
   const totalAmount = totalBags * pricePerBag
 
   return (
