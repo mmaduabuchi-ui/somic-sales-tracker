@@ -1,3 +1,4 @@
+// src/Summary.js
 import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
 
@@ -5,6 +6,7 @@ export default function MarketerSummary() {
   const [trips, setTrips] = useState([])
   const [marketerEmail, setMarketerEmail] = useState('')
   const [totalBags, setTotalBags] = useState(0)
+  const [totalAmount, setTotalAmount] = useState(0)
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -20,6 +22,8 @@ export default function MarketerSummary() {
       setMarketerEmail(email)
 
       const today = new Date().toISOString().slice(0, 10)
+
+      // ✅ fetch trips from Supabase (amount is computed there)
       const { data, error } = await supabase
         .from('trips')
         .select('*')
@@ -31,16 +35,18 @@ export default function MarketerSummary() {
         console.error('Error fetching trips:', error.message)
       } else {
         setTrips(data)
-        const total = data.reduce((sum, trip) => sum + trip.quantity, 0)
-        setTotalBags(total)
+
+        // ✅ use Supabase values directly
+        const totalQty = data.reduce((sum, trip) => sum + trip.quantity, 0)
+        const totalAmt = data.reduce((sum, trip) => sum + trip.amount, 0)
+
+        setTotalBags(totalQty)
+        setTotalAmount(totalAmt)
       }
     }
 
     fetchSummary()
   }, [])
-
-  const pricePerBag = 210
-  const totalAmount = totalBags * pricePerBag
 
   return (
     <div style={{ padding: 20 }}>
@@ -53,7 +59,7 @@ export default function MarketerSummary() {
       <ul>
         {trips.map((trip) => (
           <li key={trip.id}>
-            {new Date(trip.created_at).toLocaleTimeString()} — {trip.quantity} bags
+            {new Date(trip.created_at).toLocaleTimeString()} — {trip.quantity} bags — ₦{trip.amount}
           </li>
         ))}
       </ul>
