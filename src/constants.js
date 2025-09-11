@@ -1,5 +1,3 @@
 // src/constants.js
-
 export const CEO_EMAIL = 'somicwater@proton.me'
-
-export const PRICE_PER_BAG = 210  // default price per bag used in calculations
+// ⚠️ Removed PRICE_PER_BAG – all pricing now comes from Supabase
